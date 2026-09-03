@@ -1,0 +1,45 @@
+name: DriveGuard Edge CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Verify Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Copy env file
+        run: cp .env .env
+
+      - name: Build all images
+        run: docker compose build --parallel
+
+      - name: Start services
+        run: docker compose up -d --wait
+        timeout-minutes: 5
+
+      - name: Health check backend
+        run: |
+          for i in {1..10}; do
+            curl -sf http://localhost:80/health && break || sleep 5
+          done
+
+      - name: Health check frontend
+        run: curl -sf http://localhost:80 | head -20
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

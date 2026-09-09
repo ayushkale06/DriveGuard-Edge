@@ -2,6 +2,7 @@ FROM python:3.11-slim
 
 # ── System deps ───────────────────────────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -37,7 +38,7 @@ USER driveguard
 
 # ── Health check ──────────────────────────────────────────────────────────────
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://127.0.0.1:8000/health || exit 1
+    CMD wget -qO- http://127.0.0.1:8000/health || exit 1
 
 EXPOSE 8000
 

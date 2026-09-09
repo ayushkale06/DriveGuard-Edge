@@ -24,7 +24,7 @@ jobs:
         run: docker compose build --parallel
 
       - name: Start services
-        run: docker compose up -d --wait
+        run: docker compose up -d --wait || (docker compose logs backend && exit 1)
         timeout-minutes: 5
 
       - name: Health check backend
